@@ -39,14 +39,16 @@ __global__ void kernGenComp(curandState * __restrict__ state,
       const size_t arrLen,
       const unsigned int targetLen,
       bool * __restrict__ d_fullMatch,
-      const long targetNum);
+      const long targetNum,
+      const int offset);
 
 #elif TARGET_LENGTH == 8
   __global__ void kernVec8Match(const bool * __restrict__ d_charMatch,
       const size_t arrLen,
       const unsigned int targetLen,
       bool * __restrict__ d_fullMatch,
-      const long targetNum);
+      const long targetNum,
+      const int offset);
 #endif // TARGET_LENGTH must be 4 xor 8
 
 #endif  // #ifndef _MONKEYS_KERNELS_CUH_

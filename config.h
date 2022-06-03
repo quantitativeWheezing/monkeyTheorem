@@ -39,11 +39,11 @@
  *                  so changing its value according to hardware is easy
  */
 
-#define TARGET_LENGTH 4
+#define TARGET_LENGTH 8
 #define REDUCTION_VEC_SIZE 8
 #define MATCH_VEC_SIZE 4
 #define ALPHABET 0
-#define RUN_TESTS 1
+#define RUN_TESTS 0
 constexpr unsigned int BLOCK_SIZE_X = 8;
 constexpr unsigned int BLOCK_SIZE_Y = 8;
 constexpr unsigned int SEED = 0;
