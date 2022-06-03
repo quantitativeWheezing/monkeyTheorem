@@ -1,0 +1,5 @@
+abcdefghijklmnopqrstuvwxyz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+12345667890
+ ,;:.!?#$%^&_+-*/=|
+()[]{}<>\'"
