@@ -26,17 +26,20 @@
  */
 
 
-/* Reduction kernels used determine if any contiguous matches were generated */
-// The functions here are based on reduce7 from
-// https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
-// https://github.com/NVIDIA/cuda-samples/blob/master/Samples/2_Concepts_and_Techniques/reduction/reduction_kernel.cu
+/* Reduction kernels used determine if any contiguous matches were generated
+ * The functions here are based on reduce7 from
+ * https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf
+ * They extend the kernels with vectorized memory access
+ */
 
 #ifndef _REDUCTION_KERNELS_CUH_
 #define _REDUCTION_KERNELS_CUH_
 
+// includes, system
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+// includes, project
 #include "config.h"
 
 //----------------------------------------------------------------------------//

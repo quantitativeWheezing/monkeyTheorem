@@ -1,7 +1,10 @@
-/* Kernels for random number generation and target matching */
+/* Run iterations with matchFileMultiGPU
+ */
+
 #ifndef _MONKEYS_CUH_
 #define _MONKEYS_CUH_
 
+// includes, system
 #include <stddef.h>
 
 //----------------------------------------------------------------------------//

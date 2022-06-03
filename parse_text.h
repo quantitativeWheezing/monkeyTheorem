@@ -1,6 +1,11 @@
+/* Given a fixed alphabet, count the number of valid characters in a file, and
+ * write char (uint) arrays with the valid characters (uint translation)
+ */
+
 #ifndef _PARSE_TEXT_H_
 #define _PARSE_TEXT_H_
 
+// includes, system
 #include <stddef.h>
 
 //----------------------------------------------------------------------------//

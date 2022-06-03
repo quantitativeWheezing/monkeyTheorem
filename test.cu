@@ -1,3 +1,7 @@
+/* Write files to verify the uniformity of rng
+ * Has a cpu analogue of matchFileMultiGPU from monkeys.cu
+ */
+
 // includes, system
 #include <stdio.h>
 #include <stdlib.h>

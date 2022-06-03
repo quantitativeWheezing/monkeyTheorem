@@ -1,4 +1,8 @@
-/* Kernels for random number generation and target matching */
+/* Kernels for random number generation and target matching
+ * Note that coniditional compilation is used, so config.h is a hard dependency
+ */
+
+// includes, system
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <curand.h>

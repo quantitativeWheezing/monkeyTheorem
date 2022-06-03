@@ -25,9 +25,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-////////////////////////////////////////////////////////////////////////////////
-// These are CUDA Helper functions for initialization and error checking
-// This is from helper_cuda.h in https://github.com/NVIDIA/cuda-samples/tree/master/Common
+/* These are CUDA helper functions for error checking
+ * This is from helper_cuda.h in https://github.com/NVIDIA/cuda-samples/tree/master/Common
+ */
 
 #ifndef _HELPER_CUDA_H_
 #define _HELPER_CUDA_H_
@@ -46,8 +46,6 @@ void check(T result, char const *const func, const char *const file,
   }
 }
 
-// This will output the proper CUDA error strings in the event
-// that a CUDA host call returns an error
 #define checkCudaErrors(val) check((val), #val, __FILE__, __LINE__)
 
 

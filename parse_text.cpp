@@ -1,3 +1,8 @@
+/* Helper function for making sure that filenames are valid
+ * We also use a hashmap to map characters to numbers
+ * Lastly, we define a function to replace '\n' with '\\' for output
+ */
+
 // includes, system
 #include <stdio.h>
 #include <stdlib.h>

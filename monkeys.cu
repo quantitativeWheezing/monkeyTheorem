@@ -1,3 +1,7 @@
+/* Functions for initializing structures, garbage collection, 
+ * and running iterations
+ */
+
 // includes, system
 #include <stdio.h>
 #include <stdlib.h>

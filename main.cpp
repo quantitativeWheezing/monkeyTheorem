@@ -1,3 +1,11 @@
+/* Calls functions with parameters specified in config.h
+ * e.g. can run tests if requested
+ * can generate text for all files in ./textFiles if one uses
+ * ./build/bin/monkeyTheorem "all"
+ * can generate text for an individual file in ./textFiles, like
+ * ./build/bin/monkeyTheorem "shakespeare.txt"
+ */
+
 // includes, system
 #include <time.h>
 #include <cstring>
@@ -73,27 +81,11 @@ int main(int argc, char *argv[])
 
 #endif
 
-  const unsigned int numFiles = 18;
+  const unsigned int numFiles = 2;
   char fileNames[numFiles][32] =
   {
-    "100.txt",
-    "annaKarenina.txt",
-    "bhagavad.txt",
-    "bible.txt",
-    "bread.txt",
-    "capital1.txt",
-    "capital2.txt",
-    "capital3.txt",
-    "genji.txt",
-    "lesMiserables.txt",
-    "leviathan.txt",
-    "mobyDick.txt",
-    "republic.txt",
-    "rtk.txt",
     "shakespeare.txt",
     "trump.txt",
-    "warAndPeace.txt",
-    "waterMargin.txt",
   };
 
   

@@ -1,3 +1,7 @@
+/* Verify the uniformity of rng and also use cpu to verify gpu results
+ */
+
+// includes, system
 #ifndef _TEST_H_
 #define _TEST_H_
 

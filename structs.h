@@ -1,8 +1,9 @@
-/* Structs to simplify variable handling */
+/* Structs to organize variables */
 
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
+// includes, system
 #include <curand.h>
 #include <curand_kernel.h>
 

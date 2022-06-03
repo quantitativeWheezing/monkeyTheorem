@@ -1,4 +1,4 @@
-HOST_COMPILER := gcc
+CXX := gcc
 
 NVCC := nvcc
 
@@ -32,7 +32,7 @@ clean :
 
 $(OBJDIR)/%.o : %.cpp
 	@mkdir -p $(dir $@)
-	@$(HOST_COMPILER) -c $(CPPFLAGS) $< -o $@
+	@$(CXX) -c $(CPPFLAGS) $< -o $@
 
 $(OBJDIR)/%.o : %.cu
 	@mkdir -p $(dir $@)
@@ -40,4 +40,4 @@ $(OBJDIR)/%.o : %.cu
 
 $(TARGETDIR)/monkeyTheorem : $(OBJ)
 	@mkdir -p $(dir $@)
-	@$(HOST_COMPILER) $(OBJ) $(LIBS) $(LDFLAGS) -o $@
+	@$(CXX) $(OBJ) $(LIBS) $(LDFLAGS) -o $@

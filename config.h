@@ -1,3 +1,10 @@
+/* This serves as a file with the program parameters,
+ * like an input file for a computational chemistry calculation/simulation
+ * The constraints on parameters are detailed below and enforced with 
+ * static_assert calls in main.cpp
+ * Parameters below WARP_SIZE should not be changed
+ */
+
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
