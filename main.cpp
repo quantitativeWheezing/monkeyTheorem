@@ -21,11 +21,11 @@
 //----------------------------------------------------------------------------//
 // assert requirements of input parameters
 //----------------------------------------------------------------------------//
-#if (ALPHABET == 0)
+#if ALPHABET == 0
   constexpr unsigned int NUM_KEYS = 26;
-#elif (ALPHABET == 1)
+#elif ALPHABET == 1
   constexpr unsigned int NUM_KEYS = 52;
-#elif (ALPHABET == 2)
+#elif ALPHABET == 2
   constexpr unsigned int NUM_KEYS = 94;
 #endif // ALPHABET must be in {0,1,2}
 
@@ -42,17 +42,16 @@ static_assert((MATCH_VEC_SIZE == 4 || MATCH_VEC_SIZE == 2),
 static_assert((ALPHABET == 0 || ALPHABET == 1 || ALPHABET == 2),
       "ALPHABET must be in {0,1,2}");
 
-static_assert((SHMEM_SIZE == 512 || SHMEM_SIZE == 256 || SHMEM_SIZE == 128 ||
-      SHMEM_SIZE == 64 || SHMEM_SIZE == 32 || SHMEM_SIZE == 16),
-      "SHMEM_SIZE must be in {16,32,64,128,256,512}");
+static_assert((N_THREADS == 512 || N_THREADS == 256 || N_THREADS == 128 ||
+      N_THREADS == 64 || N_THREADS == 32 || N_THREADS == 16),
+      "N_THREADS must be in {16,32,64,128,256,512}");
 
-static_assert(!(N_NUMS%SHMEM_SIZE), "SHMEM_SIZE must divide N_NUMS");
+static_assert(!(N_NUMS%N_THREADS), "N_THREADS must divide N_NUMS");
 
 static_assert(!(N_NUMS%TARGET_LENGTH), "TARGET_LENGTH must divide N_NUMS");
 
-static_assert(!(N_NUMS%(SHMEM_SIZE*MATCH_VEC_SIZE)),
-      "(SHMEM_SIZE*MATCH_VEC_SIZE) must divide N_NUMS");
-//----------------------------------------------------------------------------//
+static_assert(!(N_NUMS%(N_THREADS*MATCH_VEC_SIZE)),
+      "(N_THREADS*MATCH_VEC_SIZE) must divide N_NUMS");
 
 int main(int argc, char *argv[])
 {
@@ -72,12 +71,14 @@ int main(int argc, char *argv[])
 
   // verify that GPU is faster than CPU for
   matchFileCPU("sample1.txt", N_NUMS, TARGET_LENGTH, NUM_KEYS);
-  matchFileMultiGPU("sample1.txt", numGPUs, N_NUMS, TARGET_LENGTH,
-      NUM_KEYS, SEED, false);
+  matchFileMultiGPU("sample1.txt", "./textFiles/", "./output/",
+      numGPUs, N_NUMS, TARGET_LENGTH,
+      NUM_KEYS, SEED, N_THREADS, false);
 
   // verify that GPU results match cpu results
-  matchFileMultiGPU("sample2.txt", numGPUs, N_NUMS, TARGET_LENGTH,
-      NUM_KEYS, SEED, true);
+  matchFileMultiGPU("sample2.txt", "./textFiles/", "./output/",
+      numGPUs, N_NUMS, TARGET_LENGTH,
+      NUM_KEYS, SEED, N_THREADS, true);
 
 #endif
 
@@ -92,13 +93,16 @@ int main(int argc, char *argv[])
   if (argc > 1) {
     if (!strcmp(argv[1], "all")) {
       for(unsigned int i = 0; i < numFiles; i++) {
-        matchFileMultiGPU(fileNames[i], numGPUs, N_NUMS, TARGET_LENGTH,
-            NUM_KEYS, SEED, false);
+        matchFileMultiGPU(fileNames[i], "./textFiles/", "./output/",
+            numGPUs, N_NUMS, TARGET_LENGTH,
+            NUM_KEYS, SEED, N_THREADS, false);
       }
     }
+
     else {
-      matchFileMultiGPU(argv[1], numGPUs, N_NUMS, TARGET_LENGTH,
-          NUM_KEYS, SEED, false);
+      matchFileMultiGPU(argv[1], "./textFiles/", "./output/",
+            numGPUs, N_NUMS, TARGET_LENGTH,
+            NUM_KEYS, SEED, N_THREADS, false);
     }
   }
 

@@ -4,6 +4,8 @@
 #define _STRUCTS_H_
 
 // includes, system
+#include <stdio.h>
+//#include <stdlib.h>
 #include <curand.h>
 #include <curand_kernel.h>
 
@@ -61,6 +63,26 @@ struct ManyMonkeys
 
   //! (uni) was contiguous match found in generated numbers?
   bool *u_foundMatch;
+
+};
+
+//----------------------------------------------------------------------------//
+//! Contains data for reading text files and simplifies output
+//----------------------------------------------------------------------------//
+struct ioPar
+{
+
+  //! file for output data
+  FILE *fOut;
+
+  //! array for characters
+  char *fChars;
+
+  //! array for uint translation of characters
+  unsigned int *fUints;
+
+  //! number of valid characters in input file
+  size_t numChars;
 
 };
 

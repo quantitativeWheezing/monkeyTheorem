@@ -27,7 +27,7 @@ void cpuTestDist(const size_t arrLen,
 //----------------------------------------------------------------------------//
 void matchFileCPU(const char *fileName,
     const size_t arrLen,
-    const unsigned int targetLen,
+    const unsigned int targLen,
     const unsigned int typewriterSize);
 
 #endif  // #ifndef _TEST_H_
