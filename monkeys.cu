@@ -54,9 +54,9 @@ static void initAllMonkeys(struct ManyMonkeys *monks,
     checkCudaErrors(cudaMalloc((void **)&monks[i].d_charMatch,
           arrLen*sizeof(bool)));
     checkCudaErrors(cudaMalloc((void **)&monks[i].d_Amatch,
-          (arrLen/targetLen)*sizeof(bool)));
+          arrLen*sizeof(bool)));
     checkCudaErrors(cudaMalloc((void **)&monks[i].d_Bmatch,
-          (arrLen/targetLen)*sizeof(bool)));
+          arrLen*sizeof(bool)));
     
     // (unified) allocate memory
     checkCudaErrors(cudaMallocManaged((void **)&monks[i].u_foundMatch,
@@ -105,13 +105,18 @@ static bool cpuCharMatch(const bool *d_charMatch,
   checkCudaErrors(cudaMemcpy(h_charMatch, d_charMatch, arrLen*sizeof(bool), 
       cudaMemcpyDeviceToHost));
   bool matchSoFar;
-  for(unsigned int i = 0; i < arrLen/targetLen; i++) {
-    matchSoFar = true;
-    for(unsigned int j = 0; j < targetLen; j++) {
-      matchSoFar = matchSoFar && h_charMatch[j + i*targetLen];
-      if (matchSoFar && j == targetLen-1) {
-        free(h_charMatch); 
-        return true;
+  for(unsigned int offset = 0; offset < targetLen; offset++) {
+    for(unsigned int i = 0; i < arrLen/targetLen; i++) {
+      matchSoFar = true;
+      for(unsigned int j = 0; j < targetLen; j++) {
+        unsigned int index = i*targetLen+j+offset;
+        if (index < arrLen){
+          matchSoFar = matchSoFar && h_charMatch[index];
+          if (matchSoFar && j == targetLen-1) {
+            free(h_charMatch); 
+            return true;
+          }
+        }
       }
     }
   }
@@ -168,7 +173,8 @@ void matchFileMultiGPU(const char *fileName,
   // parameters to pass to kernels
   const dim3 block(SHMEM_SIZE), grid(arrLen/SHMEM_SIZE);
   const size_t totShared = (SHMEM_SIZE+1)*sizeof(unsigned int);
-  cudaStream_t *stream = (cudaStream_t *)malloc(numGPUs*sizeof(cudaStream_t));
+  cudaStream_t *stream = (cudaStream_t *)malloc(targetLen*numGPUs*
+      sizeof(cudaStream_t));
 
   // use this number to quickly identify contiguous matches
   long targetNum = 0;
@@ -182,7 +188,9 @@ void matchFileMultiGPU(const char *fileName,
   cudaDeviceProp deviceProp;
   for(unsigned int i = 0; i < numGPUs; i++) {
     checkCudaErrors(cudaSetDevice(i));
-    cudaStreamCreate(&stream[i]);
+    for(unsigned int offset = 0; offset < targetLen; offset++) {
+      cudaStreamCreate(&stream[targetLen*i+offset]);
+    }
     cpuRes[i] = true;
     monks[i].h_foundMatch[0] = true;
     monks[i].u_foundMatch[0] = true;
@@ -219,7 +227,7 @@ void matchFileMultiGPU(const char *fileName,
         // if we're not, copy word to device
         checkCudaErrors(cudaMemcpyAsync(monks[i].d_targUint,
             monks[i].h_targUint, targetLen*sizeof(unsigned int), 
-            cudaMemcpyHostToDevice, stream[i]));
+            cudaMemcpyHostToDevice, stream[targetLen*i]));
 
         // host variable to see if match to word was found
         // we check the host variable often and use it to
@@ -243,12 +251,12 @@ void matchFileMultiGPU(const char *fileName,
       if(!monks[i].h_foundMatch[0]) {
         checkCudaErrors(cudaSetDevice(i));
 
-        kernGenComp<<<grid, block, totShared, stream[i]>>>
+        kernGenComp<<<grid, block, totShared, stream[targetLen*i]>>>
           (monks[i].randState, arrLen,
            typewriterSize, monks[i].d_targUint,
            targetLen, monks[i].d_charMatch);
-        cudaMemset(monks[i].d_Amatch, false, arrLen/targetLen);
-        cudaMemset(monks[i].d_Bmatch, false, arrLen/targetLen);
+        cudaMemset(monks[i].d_Amatch, false, arrLen);
+        cudaMemset(monks[i].d_Bmatch, false, arrLen);
         monks[i].numsSoFar += arrLen;
 
         if (cpuCheck) {
@@ -259,21 +267,31 @@ void matchFileMultiGPU(const char *fileName,
     }
 
     // check contiguous matches
+    // !!! we're being greedy here and trying to avoid a stream/device sync
+    // !!! we launch stream[targetLen*gpuID] last because the next step
+    // !!! (reduction) is launched in that stream: hopefully it finishes last 
     for(unsigned int i = 0; i < numGPUs; i++) {
+      unsigned int numBlocks = arrLen/(targetLen*MATCH_VEC_SIZE*SHMEM_SIZE);
       if(!monks[i].h_foundMatch[0]) {
         checkCudaErrors(cudaSetDevice(i));
+        for(unsigned int offset = 0; offset < targetLen; offset++) {
 
 #if TARGET_LENGTH == 4
-          kernVec4Match<<<arrLen/(targetLen*MATCH_VEC_SIZE*SHMEM_SIZE),
-            block, 0, stream[i]>>> (monks[i].d_charMatch, arrLen,
-             targetLen, monks[i].d_Amatch, targetNum); 
+          kernVec4Match<<<numBlocks, block, 0,
+            stream[targetLen*i+(targetLen-1-offset)]>>>
+            (monks[i].d_charMatch, arrLen, targetLen,
+             monks[i].d_Amatch+(arrLen*(targetLen-1-offset))/targetLen,
+             targetNum, (targetLen-1-offset)); 
 
 #elif TARGET_LENGTH == 8
-          kernVec8Match<<<arrLen/(targetLen*MATCH_VEC_SIZE*SHMEM_SIZE),
-            block, 0, stream[i]>>> (monks[i].d_charMatch, arrLen,
-             targetLen, monks[i].d_Amatch, targetNum); 
+          kernVec8Match<<<numBlocks, block, 0,
+            stream[targetLen*i+(targetLen-1-offset)]>>>
+            (monks[i].d_charMatch, arrLen, targetLen,
+             monks[i].d_Amatch+(arrLen*(targetLen-1-offset))/targetLen,
+             targetNum, (targetLen-1-offset)); 
 
 #endif
+        }
         monks[i].writeA = false;
       }
     }
@@ -281,7 +299,8 @@ void matchFileMultiGPU(const char *fileName,
     // recursively search arrays for the presence of a contiguous match
     // note that kernels are launched in the inner loop:
     // we can achieve concurrency if neither GPU has found a match
-    for (unsigned int s = arrLen/targetLen;  s > 1; s /= (SHMEM_SIZE*
+    //for (unsigned int s = arrLen/targetLen;  s > 1; s /= (SHMEM_SIZE*
+    for (unsigned int s = arrLen; s > 1; s /= (SHMEM_SIZE*
           REDUCTION_VEC_SIZE)) {
       unsigned int numBlocks = (unsigned int)ceil((1.*s)/
           (SHMEM_SIZE*REDUCTION_VEC_SIZE));
@@ -291,14 +310,14 @@ void matchFileMultiGPU(const char *fileName,
 
           if (monks[i].writeA) {
             callVecAnyMatch(numBlocks, s, monks[i].d_Bmatch,
-                monks[i].d_Amatch, totShared, stream[i],
+                monks[i].d_Amatch, totShared, stream[targetLen*i],
                 monks[i].u_foundMatch);
             monks[i].writeA = false;
           }
 
           else {
             callVecAnyMatch(numBlocks, s, monks[i].d_Amatch,
-                monks[i].d_Bmatch, totShared, stream[i],
+                monks[i].d_Bmatch, totShared, stream[targetLen*i],
                 monks[i].u_foundMatch);
             monks[i].writeA = true;
           }
@@ -349,8 +368,10 @@ void matchFileMultiGPU(const char *fileName,
     checkCudaErrors(cudaSetDevice(i));
     freeMonkeysMem(monks[i]);
     checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaStreamSynchronize(stream[i]));
-    cudaStreamDestroy(stream[i]);
+    for(unsigned int offset = 0; offset < targetLen; offset++) {
+      checkCudaErrors(cudaStreamSynchronize(stream[targetLen*i+offset]));
+      cudaStreamDestroy(stream[targetLen*i+offset]);
+    }
   }
   free(stream);
   free(monks);

@@ -113,40 +113,43 @@ __global__ void kernGenComp(curandState * __restrict__ state,
 //! @param  targetNum  consecutive "true" values represented as a number
 //----------------------------------------------------------------------------//
 #if TARGET_LENGTH == 4
-  __global__ void kernVec4Match(const bool * __restrict__ d_charMatch,
-      const size_t arrLen,
-      const unsigned int targetLen,
-      bool * __restrict__ d_fullMatch,
-      const long targetNum)
-  {
+__global__ void kernVec4Match(const bool * __restrict__ d_charMatch,
+    const size_t arrLen,
+    const unsigned int targetLen,
+    bool * __restrict__ d_fullMatch,
+    const long targetNum,
+    const int offset)
+{
 
-    const int tid = threadIdx.x+blockIdx.x*blockDim.x;
+  const int tid = threadIdx.x+blockIdx.x*blockDim.x;
 
 #if MATCH_VEC_SIZE == 4
-    if (targetLen*4*tid<arrLen) {
-      uint4 testNum;
-      struct bool4 testBool;
-      memcpy(&testNum, &d_charMatch[targetLen*4*tid], targetLen*4*sizeof(bool));
-      testBool.x = testNum.x == targetNum;
-      testBool.y = testNum.y == targetNum;
-      testBool.z = testNum.z == targetNum;
-      testBool.w = testNum.w == targetNum;
-      __syncthreads();
-      memcpy(&d_fullMatch[4*tid], &testBool, 4*sizeof(bool));
-    }
+  if (targetLen*4*tid+offset<arrLen) {
+    uint4 testNum;
+    struct bool4 testBool;
+    memcpy(&testNum, &d_charMatch[targetLen*4*tid+offset],
+        targetLen*4*sizeof(bool));
+    testBool.x = testNum.x == targetNum;
+    testBool.y = testNum.y == targetNum;
+    testBool.z = testNum.z == targetNum;
+    testBool.w = testNum.w == targetNum;
+    __syncthreads();
+    memcpy(d_fullMatch+4*tid, &testBool, 4*sizeof(bool));
+  }
 
 #elif MATCH_VEC_SIZE == 2
-    if (targetLen*2*tid<arrLen) {
-      uint2 testNum;
-      struct bool2 testBool;
-      memcpy(&testNum, &d_charMatch[targetLen*2*tid], targetLen*2*sizeof(bool));
-      testBool.x = testNum.x == targetNum;
-      testBool.y = testNum.y == targetNum;
-      __syncthreads();
-      memcpy(&d_fullMatch[2*tid], &testBool, 2*sizeof(bool));
-    }
-#endif // #if MATCH_VEC_SIZE is 2 xor 4
+  if (targetLen*2*tid+offset<arrLen) {
+    uint2 testNum;
+    struct bool2 testBool;
+    memcpy(&testNum, &d_charMatch[targetLen*2*tid+offset],
+        targetLen*2*sizeof(bool));
+    testBool.x = testNum.x == targetNum;
+    testBool.y = testNum.y == targetNum;
+    __syncthreads();
+    memcpy(d_fullMatch+2*tid, &testBool, 2*sizeof(bool));
   }
+#endif // #if MATCH_VEC_SIZE is 2 xor 4
+}
 
 //----------------------------------------------------------------------------//
 //! Vectorized memory access to check for contiguous matches: 8 char blocks
@@ -156,39 +159,42 @@ __global__ void kernGenComp(curandState * __restrict__ state,
 //! @param  targetNum  consecutive "true" values represented as a number
 //----------------------------------------------------------------------------//
 #elif TARGET_LENGTH == 8
-  __global__ void kernVec8Match(const bool * __restrict__ d_charMatch,
-      const size_t arrLen,
-      const unsigned int targetLen,
-      bool * __restrict__ d_fullMatch,
-      const long targetNum)
-  {
+__global__ void kernVec8Match(const bool * __restrict__ d_charMatch,
+    const size_t arrLen,
+    const unsigned int targetLen,
+    bool * __restrict__ d_fullMatch,
+    const long targetNum,
+    const int offset)
+{
 
-    const int tid = threadIdx.x+blockIdx.x*blockDim.x;
+  const int tid = threadIdx.x+blockIdx.x*blockDim.x;
 
 #if MATCH_VEC_SIZE == 4
-    if (targetLen*4*(tid+1)<arrLen) {
-      ulong4 testNum;
-      struct bool4 testBool;
-      memcpy(&testNum, &d_charMatch[targetLen*4*tid], targetLen*4*sizeof(bool));
-      testBool.x = testNum.x == targetNum;
-      testBool.y = testNum.y == targetNum;
-      testBool.z = testNum.z == targetNum;
-      testBool.w = testNum.w == targetNum;
-      __syncthreads();
-      memcpy(&d_fullMatch[4*tid], &testBool, 4*sizeof(bool));
-    }
+  if (targetLen*4*tid+offset<arrLen) {
+    ulong4 testNum;
+    struct bool4 testBool;
+    memcpy(&testNum, &d_charMatch[targetLen*4*tid+offset],
+        targetLen*4*sizeof(bool));
+    testBool.x = testNum.x == targetNum;
+    testBool.y = testNum.y == targetNum;
+    testBool.z = testNum.z == targetNum;
+    testBool.w = testNum.w == targetNum;
+    __syncthreads();
+    memcpy(d_fullMatch+4*tid, &testBool, 4*sizeof(bool));
+  }
 
 #elif MATCH_VEC_SIZE == 2
-    if (targetLen*2*(tid+1)<arrLen) {
-      ulong2 testNum;
-      struct bool2 testBool;
-      memcpy(&testNum, &d_charMatch[targetLen*2*tid], targetLen*2*sizeof(bool));
-      testBool.x = testNum.x == targetNum;
-      testBool.y = testNum.y == targetNum;
-      __syncthreads();
-      memcpy(&d_fullMatch[2*tid], &testBool, 2*sizeof(bool));
-    }
-#endif // #if MATCH_VEC_SIZE is 2 xor 4
+  if (targetLen*2*tid+offset<arrLen) {
+    ulong2 testNum;
+    struct bool2 testBool;
+    memcpy(&testNum, &d_charMatch[targetLen*2*tid+offset],
+        targetLen*2*sizeof(bool));
+    testBool.x = testNum.x == targetNum;
+    testBool.y = testNum.y == targetNum;
+    __syncthreads();
+    memcpy(d_fullMatch+2*tid, &testBool, 2*sizeof(bool));
   }
+#endif // #if MATCH_VEC_SIZE is 2 xor 4
+}
 
 #endif // #if TARGET_LENGTH is 4 xor 8
