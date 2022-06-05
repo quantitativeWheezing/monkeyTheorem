@@ -5,7 +5,6 @@
 
 // includes, system
 #include <stdio.h>
-//#include <stdlib.h>
 #include <curand.h>
 #include <curand_kernel.h>
 
@@ -66,24 +65,5 @@ struct ManyMonkeys
 
 };
 
-//----------------------------------------------------------------------------//
-//! Contains data for reading text files and simplifies output
-//----------------------------------------------------------------------------//
-struct ioPar
-{
-
-  //! file for output data
-  FILE *fOut;
-
-  //! array for characters
-  char *fChars;
-
-  //! array for uint translation of characters
-  unsigned int *fUints;
-
-  //! number of valid characters in input file
-  size_t numChars;
-
-};
 
 #endif  // #ifndef _STRUCTS_H_

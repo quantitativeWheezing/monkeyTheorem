@@ -17,7 +17,7 @@ void matchFileMultiGPU(const char *fileName,
     const int numGPUs,
     const size_t arrLen,
     const unsigned int targLen,
-    const unsigned int twSize,
+    const unsigned int alph,
     const unsigned int seed,
     const unsigned int numThreads,
     const bool cpuCheck);

@@ -17,7 +17,7 @@ OBJDIR := $(BUILDDIR)/obj
 TARGETDIR := $(BUILDDIR)/bin
 
 SRC := main.cpp \
-	   parse_text.cpp  \
+	   io.cpp  \
 	   test.cu \
 	   monkeys_kernels.cu \
 	   monkeys.cu

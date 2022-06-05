@@ -40,12 +40,12 @@ __global__ void kernInitRand(curandState * __restrict__ state,
 //! Fill an array with random numbers: use this to test rng distribution
 //! @param  state  to be initialized by curand
 //! @param  arrLen  how many numbers are generated and queried
-//! @param  typewriterSize  number of characters in alphabet used
+//! @param  twSize  number of characters in alphabet used
 //! @param  d_testDistInts  array to contain random numbers
 //----------------------------------------------------------------------------//
 __global__ void kernGenOnly(curandState * __restrict__ state, 
     const size_t arrLen, 
-    const size_t typewriterSize, 
+    const size_t twSize, 
     unsigned int * __restrict__ d_testDistInts)
 {
 
@@ -53,7 +53,7 @@ __global__ void kernGenOnly(curandState * __restrict__ state,
   if (tid < arrLen) {
 
     // generate random uint
-    float fRoll = curand_uniform(&state[tid])*typewriterSize;
+    float fRoll = curand_uniform(&state[tid])*twSize;
     unsigned int uiRoll = (unsigned int)trunc(fRoll);
     __syncthreads();
     d_testDistInts[tid] = uiRoll;
@@ -65,28 +65,28 @@ __global__ void kernGenOnly(curandState * __restrict__ state,
 //! @param  state  must be initialized by curand
 //! @param  seed  change seed for curand
 //! @param  arrLen  how many numbers are generated and queried
-//! @param  typewriterSize  number of characters in alphabet used
+//! @param  twSize  number of characters in alphabet used
 //! @param  d_targetInt  integer representation of target string
-//! @param  targetLen  length of target string
+//! @param  targLen  length of target string
 //! @param  d_charMatch  indicates character-wise matches to target
 //----------------------------------------------------------------------------//
 __global__ void kernGenComp(curandState * __restrict__ state, 
     const size_t arrLen, 
-    const size_t typewriterSize, 
+    const size_t twSize, 
     const unsigned int*__restrict__ d_targetInt,
-    const unsigned int targetLen,
+    const unsigned int targLen,
     bool * __restrict__ d_charMatch)
 {
 
   const unsigned int tid = threadIdx.x+blockDim.x*blockIdx.x;
 
   // load target into shared memory
-  volatile __shared__ unsigned int s_targetInt[SHMEM_SIZE+1];
-  if ((threadIdx.x<targetLen)&&(tid<arrLen)) {
+  volatile __shared__ unsigned int s_targetInt[N_THREADS+1];
+  if ((threadIdx.x<targLen)&&(tid<arrLen)) {
     s_targetInt[threadIdx.x] = d_targetInt[threadIdx.x];
 
     // duplicate target in shared mem to avoid bank conflicts later
-    for(unsigned int i = threadIdx.x+BLOCK_SIZE_X; i<SHMEM_SIZE; 
+    for(unsigned int i = threadIdx.x+BLOCK_SIZE_X; i<N_THREADS; 
         i += BLOCK_SIZE_X) {
       s_targetInt[i] = s_targetInt[threadIdx.x];
     }
@@ -97,7 +97,7 @@ __global__ void kernGenComp(curandState * __restrict__ state,
   // generate random uint and compare to target
   bool match;
   if (tid<arrLen) {
-    float fRoll = curand_uniform(&state[tid])*typewriterSize;
+    float fRoll = curand_uniform(&state[tid])*twSize;
     unsigned int uiRoll = (unsigned int)trunc(fRoll);
     match = s_targetInt[threadIdx.x] == uiRoll;
     __syncthreads();
@@ -108,14 +108,14 @@ __global__ void kernGenComp(curandState * __restrict__ state,
 //----------------------------------------------------------------------------//
 //! Vectorized memory access to check for contiguous matches: 4 char blocks
 //! @param  arrLen  how many numbers are generated and queried
-//! @param  targetLen  length of target string
+//! @param  targLen  length of target string
 //! @param  d_fullMatch  keeps track of when we find contiguous matches
 //! @param  targetNum  consecutive "true" values represented as a number
 //----------------------------------------------------------------------------//
 #if TARGET_LENGTH == 4
 __global__ void kernVec4Match(const bool * __restrict__ d_charMatch,
     const size_t arrLen,
-    const unsigned int targetLen,
+    const unsigned int targLen,
     bool * __restrict__ d_fullMatch,
     const long targetNum,
     const int offset)
@@ -124,11 +124,11 @@ __global__ void kernVec4Match(const bool * __restrict__ d_charMatch,
   const int tid = threadIdx.x+blockIdx.x*blockDim.x;
 
 #if MATCH_VEC_SIZE == 4
-  if (targetLen*4*tid+offset<arrLen) {
+  if (targLen*4*tid+offset<arrLen) {
     uint4 testNum;
     struct bool4 testBool;
-    memcpy(&testNum, &d_charMatch[targetLen*4*tid+offset],
-        targetLen*4*sizeof(bool));
+    memcpy(&testNum, &d_charMatch[targLen*4*tid+offset],
+        targLen*4*sizeof(bool));
     testBool.x = testNum.x == targetNum;
     testBool.y = testNum.y == targetNum;
     testBool.z = testNum.z == targetNum;
@@ -138,11 +138,11 @@ __global__ void kernVec4Match(const bool * __restrict__ d_charMatch,
   }
 
 #elif MATCH_VEC_SIZE == 2
-  if (targetLen*2*tid+offset<arrLen) {
+  if (targLen*2*tid+offset<arrLen) {
     uint2 testNum;
     struct bool2 testBool;
-    memcpy(&testNum, &d_charMatch[targetLen*2*tid+offset],
-        targetLen*2*sizeof(bool));
+    memcpy(&testNum, &d_charMatch[targLen*2*tid+offset],
+        targLen*2*sizeof(bool));
     testBool.x = testNum.x == targetNum;
     testBool.y = testNum.y == targetNum;
     __syncthreads();
@@ -154,14 +154,14 @@ __global__ void kernVec4Match(const bool * __restrict__ d_charMatch,
 //----------------------------------------------------------------------------//
 //! Vectorized memory access to check for contiguous matches: 8 char blocks
 //! @param  arrLen  how many numbers are generated and queried
-//! @param  targetLen  length of target string
+//! @param  targLen  length of target string
 //! @param  d_fullMatch  keeps track of when we find contiguous matches
 //! @param  targetNum  consecutive "true" values represented as a number
 //----------------------------------------------------------------------------//
 #elif TARGET_LENGTH == 8
 __global__ void kernVec8Match(const bool * __restrict__ d_charMatch,
     const size_t arrLen,
-    const unsigned int targetLen,
+    const unsigned int targLen,
     bool * __restrict__ d_fullMatch,
     const long targetNum,
     const int offset)
@@ -170,11 +170,11 @@ __global__ void kernVec8Match(const bool * __restrict__ d_charMatch,
   const int tid = threadIdx.x+blockIdx.x*blockDim.x;
 
 #if MATCH_VEC_SIZE == 4
-  if (targetLen*4*tid+offset<arrLen) {
+  if (targLen*4*tid+offset<arrLen) {
     ulong4 testNum;
     struct bool4 testBool;
-    memcpy(&testNum, &d_charMatch[targetLen*4*tid+offset],
-        targetLen*4*sizeof(bool));
+    memcpy(&testNum, &d_charMatch[targLen*4*tid+offset],
+        targLen*4*sizeof(bool));
     testBool.x = testNum.x == targetNum;
     testBool.y = testNum.y == targetNum;
     testBool.z = testNum.z == targetNum;
@@ -184,11 +184,11 @@ __global__ void kernVec8Match(const bool * __restrict__ d_charMatch,
   }
 
 #elif MATCH_VEC_SIZE == 2
-  if (targetLen*2*tid+offset<arrLen) {
+  if (targLen*2*tid+offset<arrLen) {
     ulong2 testNum;
     struct bool2 testBool;
-    memcpy(&testNum, &d_charMatch[targetLen*2*tid+offset],
-        targetLen*2*sizeof(bool));
+    memcpy(&testNum, &d_charMatch[targLen*2*tid+offset],
+        targLen*2*sizeof(bool));
     testBool.x = testNum.x == targetNum;
     testBool.y = testNum.y == targetNum;
     __syncthreads();

@@ -42,7 +42,7 @@
 #define REDUCTION_VEC_SIZE 8
 #define MATCH_VEC_SIZE 4
 #define ALPHABET 0
-#define RUN_TESTS 0
+#define RUN_TESTS 1
 constexpr unsigned int BLOCK_SIZE_X = 8;
 constexpr unsigned int BLOCK_SIZE_Y = 8;
 constexpr unsigned int SEED = 0;

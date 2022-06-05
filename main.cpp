@@ -26,7 +26,7 @@
 #elif ALPHABET == 1
   constexpr unsigned int NUM_KEYS = 52;
 #elif ALPHABET == 2
-  constexpr unsigned int NUM_KEYS = 94;
+  constexpr unsigned int NUM_KEYS = 93;
 #endif // ALPHABET must be in {0,1,2}
 
 static_assert((TARGET_LENGTH == 8 || TARGET_LENGTH == 4),
@@ -70,15 +70,15 @@ int main(int argc, char *argv[])
   cpuTestDist(N_NUMS, NUM_KEYS, 128);
 
   // verify that GPU is faster than CPU for
-  matchFileCPU("sample1.txt", N_NUMS, TARGET_LENGTH, NUM_KEYS);
+  matchFileCPU("sample1.txt", N_NUMS, TARGET_LENGTH, ALPHABET);
   matchFileMultiGPU("sample1.txt", "./textFiles/", "./output/",
       numGPUs, N_NUMS, TARGET_LENGTH,
-      NUM_KEYS, SEED, N_THREADS, false);
+      ALPHABET, SEED, N_THREADS, false);
 
   // verify that GPU results match cpu results
   matchFileMultiGPU("sample2.txt", "./textFiles/", "./output/",
       numGPUs, N_NUMS, TARGET_LENGTH,
-      NUM_KEYS, SEED, N_THREADS, true);
+      ALPHABET, SEED, N_THREADS, true);
 
 #endif
 
@@ -95,14 +95,14 @@ int main(int argc, char *argv[])
       for(unsigned int i = 0; i < numFiles; i++) {
         matchFileMultiGPU(fileNames[i], "./textFiles/", "./output/",
             numGPUs, N_NUMS, TARGET_LENGTH,
-            NUM_KEYS, SEED, N_THREADS, false);
+            ALPHABET, SEED, N_THREADS, false);
       }
     }
 
     else {
       matchFileMultiGPU(argv[1], "./textFiles/", "./output/",
             numGPUs, N_NUMS, TARGET_LENGTH,
-            NUM_KEYS, SEED, N_THREADS, false);
+            ALPHABET, SEED, N_THREADS, false);
     }
   }
 

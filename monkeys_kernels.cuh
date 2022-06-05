@@ -17,7 +17,7 @@ __global__ void kernInitRand(curandState * __restrict__ state,
 //----------------------------------------------------------------------------//
 __global__ void kernGenOnly(curandState * __restrict__ state, 
     const size_t arrLen, 
-    const size_t typewriterSize, 
+    const size_t twSize, 
     unsigned int * __restrict__ d_testDistInts);
 
 //----------------------------------------------------------------------------//
@@ -25,9 +25,9 @@ __global__ void kernGenOnly(curandState * __restrict__ state,
 //----------------------------------------------------------------------------//
 __global__ void kernGenComp(curandState * __restrict__ state, 
     const size_t arrLen, 
-    const size_t typewriterSize, 
+    const size_t twSize, 
     const unsigned int*__restrict__ d_targetInt,
-    const unsigned int targetLen,
+    const unsigned int targLen,
     bool * __restrict__ d_charMatch);
 
 //----------------------------------------------------------------------------//
@@ -37,7 +37,7 @@ __global__ void kernGenComp(curandState * __restrict__ state,
 #if TARGET_LENGTH == 4
   __global__ void kernVec4Match(const bool * __restrict__ d_charMatch,
       const size_t arrLen,
-      const unsigned int targetLen,
+      const unsigned int targLen,
       bool * __restrict__ d_fullMatch,
       const long targetNum,
       const int offset);
@@ -45,7 +45,7 @@ __global__ void kernGenComp(curandState * __restrict__ state,
 #elif TARGET_LENGTH == 8
   __global__ void kernVec8Match(const bool * __restrict__ d_charMatch,
       const size_t arrLen,
-      const unsigned int targetLen,
+      const unsigned int targLen,
       bool * __restrict__ d_fullMatch,
       const long targetNum,
       const int offset);

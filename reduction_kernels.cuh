@@ -80,7 +80,7 @@ __global__ void kernVecAnyMatch(const bool * __restrict__ g_idata,
 
   const int global_tid = threadIdx.x+blockIdx.x*blockDim.x;
   const int tid = threadIdx.x;
-  volatile __shared__ unsigned int s_fullMatch[SHMEM_SIZE+1];
+  volatile __shared__ unsigned int s_fullMatch[N_THREADS+1];
 
 #if REDUCTION_VEC_SIZE == 16
     if (16*global_tid<n) {
@@ -144,26 +144,26 @@ __host__ void callVecAnyMatch(const unsigned int nBlocks,
 
   // write to unified memory on last literation
   bool writeRes = false;
-  if (n<=SHMEM_SIZE*REDUCTION_VEC_SIZE) writeRes = true;
-  switch (SHMEM_SIZE) {
+  if (n<=N_THREADS*REDUCTION_VEC_SIZE) writeRes = true;
+  switch (N_THREADS) {
 
     case 512: 
-      kernVecAnyMatch<512><<< nBlocks, SHMEM_SIZE, sharedBytes, stream>>>
+      kernVecAnyMatch<512><<< nBlocks, N_THREADS, sharedBytes, stream>>>
         (g_idata, g_odata, n, writeRes, u_foundMatch); break;
     case 256:
-      kernVecAnyMatch<256><<< nBlocks, SHMEM_SIZE, sharedBytes, stream>>>
+      kernVecAnyMatch<256><<< nBlocks, N_THREADS, sharedBytes, stream>>>
         (g_idata, g_odata, n, writeRes, u_foundMatch); break;
     case 128:
-      kernVecAnyMatch<128><<< nBlocks, SHMEM_SIZE, sharedBytes, stream>>>
+      kernVecAnyMatch<128><<< nBlocks, N_THREADS, sharedBytes, stream>>>
         (g_idata, g_odata, n, writeRes, u_foundMatch); break;
     case 64:
-      kernVecAnyMatch<64 ><<< nBlocks, SHMEM_SIZE, sharedBytes, stream>>>
+      kernVecAnyMatch<64 ><<< nBlocks, N_THREADS, sharedBytes, stream>>>
         (g_idata, g_odata, n, writeRes, u_foundMatch); break;
     case 32:
-      kernVecAnyMatch<32 ><<< nBlocks, SHMEM_SIZE, sharedBytes, stream>>>
+      kernVecAnyMatch<32 ><<< nBlocks, N_THREADS, sharedBytes, stream>>>
         (g_idata, g_odata, n, writeRes, u_foundMatch); break;
     case 16:
-      kernVecAnyMatch<16 ><<< nBlocks, SHMEM_SIZE, sharedBytes, stream>>>
+      kernVecAnyMatch<16 ><<< nBlocks, N_THREADS, sharedBytes, stream>>>
         (g_idata, g_odata, n, writeRes, u_foundMatch); break;
 
   }
