@@ -1,6 +1,4 @@
-/* Helper function for making sure that filenames are valid
- * We also use a hashmap to map characters to numbers
- * Lastly, we define a function to replace '\n' with '\\' for output
+/* Keep io neat 
  */
 
 // includes, system
@@ -19,7 +17,7 @@ using std::unordered_map;
 
 //----------------------------------------------------------------------------//
 //! Check that pointer fileName is not null and is for a valid file
-//! @param  fileName  pointer for filename to be read
+//! @param  fileName  pointer for file to be read
 //----------------------------------------------------------------------------//
 static void checkFileName(const char *fileName)
 {
@@ -94,7 +92,7 @@ static char charConvert(const char c,
 
 //----------------------------------------------------------------------------//
 //! Count how many valid characters are contained in a file
-//! @param  fileName  pointer for filename to be read
+//! @param  fileName  pointer for file to be read
 //----------------------------------------------------------------------------//
 static size_t getFileLen(const char *fileName,
     const unsigned int alph)
@@ -117,7 +115,7 @@ static size_t getFileLen(const char *fileName,
 
 //----------------------------------------------------------------------------//
 //! Write ints and chars to arrays used in the calculation
-//! @param  fileName  pointer for filename to be read
+//! @param  fileName  pointer for file to be read
 //! @param  fileChars  write valid characters here
 //! @param  fileUints  write valid uints here
 //----------------------------------------------------------------------------//
@@ -189,18 +187,18 @@ struct ioPar ioInit(const char *outPre,
   }
   if (!strcmp(inpDir,"")) {strcpy(inpName, fileName);}
   else {strcpy(inpName, inpDir); strcat(inpName, fileName);}
-  struct ioPar var = {fileName, twSize, getFileLen(inpName, alph)};
+  struct ioPar io = {fileName, twSize, getFileLen(inpName, alph)};
 
   // setup output file
   char outName[64];
-  strcpy(outName, outDir); strcat(outName, outPre); strcat(outName, var.fName);
-  var.fOut = fopen(outName, "w");
+  strcpy(outName, outDir); strcat(outName, outPre); strcat(outName, io.fName);
+  io.fOut = fopen(outName, "w");
 
   // copy data from input to array members
-  var.fUints = (unsigned int *)malloc(var.numChars*sizeof(unsigned int));
-  var.fChars = (char *)malloc((var.numChars+1)*sizeof(char));
-  readFile(inpName, alph, var.fChars, var.fUints);
-  return var;
+  io.fUints = (unsigned int *)malloc(io.numChars*sizeof(unsigned int));
+  io.fChars = (char *)malloc((io.numChars+1)*sizeof(char));
+  readFile(inpName, alph, io.fChars, io.fUints);
+  return io;
 }
 
 //----------------------------------------------------------------------------//

@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   gpuTestDist(N_NUMS, NUM_KEYS, 128, SEED);
   cpuTestDist(N_NUMS, NUM_KEYS, 128);
 
-  // verify that GPU is faster than CPU for
+  // verify that GPU is faster than CPU
   matchFileCPU("sample1.txt", N_NUMS, TARGET_LENGTH, ALPHABET);
   matchFileMultiGPU("sample1.txt", "./textFiles/", "./output/",
       numGPUs, N_NUMS, TARGET_LENGTH,
@@ -82,25 +82,55 @@ int main(int argc, char *argv[])
 
 #endif
 
-  const unsigned int numFiles = 2;
-  char fileNames[numFiles][32] =
+  const unsigned int numText = 2;
+  char textNames[numText][32] =
   {
     "shakespeare.txt",
     "trump.txt",
   };
 
+  const unsigned int numCode = 14;
+  char codeNames[numCode][32] =
+  {
+    "config.h",
+    "helper_cuda.h",
+    "io.cpp",
+    "io.h",
+    "main.cpp",
+    "monkeys.cu",
+    "monkeys.h",
+    "monkeys_kernels.cu",
+    "monkeys_kernels.cuh",
+    "README.md",
+    "reduction_kernels.cuh",
+    "structs.h",
+    "test.cu",
+    "test.h"
+  };
   
   if (argc > 1) {
-    if (!strcmp(argv[1], "all")) {
-      for(unsigned int i = 0; i < numFiles; i++) {
-        matchFileMultiGPU(fileNames[i], "./textFiles/", "./output/",
+
+    // generate files in textFiles
+    if (!strcmp(argv[1], "text")) {
+      for(unsigned int i = 0; i < numText; i++) {
+        matchFileMultiGPU(textNames[i], "./textFiles/", "./output/",
             numGPUs, N_NUMS, TARGET_LENGTH,
             ALPHABET, SEED, N_THREADS, false);
       }
     }
 
+    // generate code
+    if (!strcmp(argv[1], "code")) {
+      for(unsigned int i = 0; i < numCode; i++) {
+        matchFileMultiGPU(codeNames[i], "./", "./output/",
+            numGPUs, N_NUMS, TARGET_LENGTH,
+            ALPHABET, SEED, N_THREADS, false);
+      }
+    }
+
+    // generate a single input file (from this directory)
     else {
-      matchFileMultiGPU(argv[1], "./textFiles/", "./output/",
+      matchFileMultiGPU(argv[1], "./", "./output/",
             numGPUs, N_NUMS, TARGET_LENGTH,
             ALPHABET, SEED, N_THREADS, false);
     }

@@ -1,5 +1,4 @@
-/* Given a fixed alphabet, count the number of valid characters in a file, and
- * write char (uint) arrays with the valid characters (uint translation)
+/* Keep io neat 
  */
 
 #ifndef _IO_H_
@@ -80,6 +79,5 @@ void ioFooter(struct ioPar &io,
 //! Free mem of io members and close its file member
 //----------------------------------------------------------------------------//
 void ioFree(struct ioPar &io);
-
 
 #endif  // #ifndef _IO_H_

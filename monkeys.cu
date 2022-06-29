@@ -209,7 +209,6 @@ void matchFileMultiGPU(const char *fileName,
         currWord += targLen;
 
         // see if we're done 
-        //finishedRead = currWord+targLen >= numChars;
         finishedRead = currWord+targLen >= io.numChars;
         if (finishedRead) break;
 

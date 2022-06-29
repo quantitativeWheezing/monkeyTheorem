@@ -16,7 +16,7 @@
  *                           memory access, must be in {4,8,16}
  *@param MATCH_VEC_SIZE  Number of contiguous matchees to be evaluated with
  *                       vectorized memory access, must be in {2,4}
- *@param ALPHABET  Which alphabet to use, must be in {0,1,2}
+ *@param ALPHABET  Which alphabet to use? Must be in {0,1,2}
  *                 [0] lower case only
  *                 [1] lower and upper case
  *                 [2] all letters and symbols (most ASCII)
@@ -33,9 +33,9 @@
  *               Make sure to not exceed max GPU memory
  *               Must be divisible by: N_THREADS, 
  *               (N_THREADS*MATCH_VEC_SIZE), and TARGET_LENGTH
- *@param WARP_SIZE  Hardware has fixed this at 32 for years
+ *@param WARP_SIZE  Hardware has fixed this at 32 for a while
  *                  Only used in reduction_kernels.cuh for unrolling,
- *                  so changing its value according to hardware is easy
+ *                  allows for possible changes in future hardware
  */
 
 #define TARGET_LENGTH 4
